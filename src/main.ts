@@ -1,34 +1,56 @@
-/**
- * Some predefined delay values (in milliseconds).
- */
-export enum Delays {
-  Short = 500,
-  Medium = 2000,
-  Long = 5000,
-}
+import { config } from './config';
+import { fetchUnipoolBalances, fetchUnipoolInfo } from '@/lib/subgraphHelper';
+import { UnipoolHelper } from '@/lib/UnipoolHelper';
+import { ethers } from 'ethers';
+import { parse } from 'json2csv';
+import fs from 'fs';
 
-/**
- * Returns a Promise<string> that resolves after a given time.
- *
- * @param {string} name - A name.
- * @param {number=} [delay=Delays.Medium] - A number of milliseconds to delay resolution of the Promise.
- * @returns {Promise<string>}
- */
-function delayedHello(
-  name: string,
-  delay: number = Delays.Medium,
-): Promise<string> {
-  return new Promise((resolve: (value?: string) => void) =>
-    setTimeout(() => resolve(`Hello, ${name}`), delay),
-  );
-}
+const main = async () => {
+  for (const network of Object.keys(config)) {
+    console.log('network: ', network);
+    const networkConfig = config[network];
+    const { subgraphApi, unipoolConfigs, blocknumber, timestamp } =
+      networkConfig;
 
-// Please see the comment in the .eslintrc.json file about the suppressed rule!
-// Below is an example of how to use ESLint errors suppression. You can read more
-// at https://eslint.org/docs/latest/user-guide/configuring/rules#disabling-rules
+    for (const unipoolConfig of unipoolConfigs) {
+      console.log('===> unipool: ', unipoolConfig.name);
+      const [unipool, unipoolBalances] = await Promise.all([
+        fetchUnipoolInfo(
+          subgraphApi,
+          unipoolConfig.unipoolAddress,
+          blocknumber,
+        ),
+        fetchUnipoolBalances(
+          subgraphApi,
+          unipoolConfig.unipoolAddress,
+          blocknumber,
+        ),
+      ]);
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function greeter(name: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-  // The name parameter should be of type string. Any is used only to trigger the rule.
-  return await delayedHello(name, Delays.Long);
-}
+      const unipoolHelper = new UnipoolHelper(unipool, timestamp);
+
+      fs.writeFileSync(
+        `./output/${network}-${unipoolConfig.name}.csv`,
+        parse(
+          unipoolBalances.map((unipoolBalance) => {
+            const earned = unipoolHelper.earned(unipoolBalance);
+            return {
+              user: unipoolBalance.user,
+              earned: ethers.utils.formatEther(earned),
+            };
+          }),
+          {
+            fields: ['user', 'earned'],
+          },
+        ),
+      );
+    }
+  }
+};
+
+main()
+  .then(() => {
+    console.log('Done');
+  })
+  .catch(console.error)
+  .finally(() => process.exit());
