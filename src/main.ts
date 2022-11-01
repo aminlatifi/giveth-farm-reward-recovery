@@ -32,13 +32,15 @@ const main = async () => {
       fs.writeFileSync(
         `./output/${network}-${unipoolConfig.name}.csv`,
         parse(
-          unipoolBalances.map((unipoolBalance) => {
-            const earned = unipoolHelper.earned(unipoolBalance);
-            return {
-              user: unipoolBalance.user,
-              earned: ethers.utils.formatEther(earned),
-            };
-          }),
+          unipoolBalances
+            .map((unipoolBalance) => {
+              const earned = unipoolHelper.earned(unipoolBalance);
+              return {
+                user: unipoolBalance.user,
+                earned: ethers.utils.formatEther(earned),
+              };
+            })
+            .filter((item) => item.earned !== '0.0'),
           {
             fields: ['user', 'earned'],
           },

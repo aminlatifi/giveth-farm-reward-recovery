@@ -1,14 +1,14 @@
 import { Config } from './types/config';
 
 export const config: Config = {
-  Mainnet: {
+  mainnet: {
     subgraphApi:
       'https://api.thegraph.com/subgraphs/name/giveth/giveth-economy-second-mainnet',
     blocknumber: 15854468,
     timestamp: 1667055635,
     unipoolConfigs: [
       {
-        name: 'GIV/ETH-balancer',
+        name: 'GIV-ETH-balancer',
         unipoolAddress: '0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1',
       },
       {
@@ -20,7 +20,7 @@ export const config: Config = {
         unipoolAddress: '0xA4b727DF6fD608d1835e3440288c73fB28c4eF16',
       },
       {
-        name: 'CULT/ETH-Regen-Farm',
+        name: 'CULT-ETH-Regen-Farm',
         unipoolAddress: '0xa479103c2618aD514653B53F064Bc6c9dC35a30b',
       },
     ],
