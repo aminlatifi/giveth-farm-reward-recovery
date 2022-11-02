@@ -35,11 +35,11 @@ export class UnipoolHelper {
   }
 
   get lastTimeRewardApplicable(): BigNumber {
-    const lastTimeRewardApplicableMS: number = Math.min(
+    const lastTimeRewardApplicableSec: number = Math.min(
       this.nowUnixSec,
       this.periodFinish,
     );
-    return toBN(Math.floor(lastTimeRewardApplicableMS / 1000));
+    return toBN(Math.floor(lastTimeRewardApplicableSec));
   }
 
   get rewardRate(): BigNumber {
@@ -53,7 +53,7 @@ export class UnipoolHelper {
     }
     return this.rewardPerTokenStored.plus(
       this.lastTimeRewardApplicable
-        .minus(this.lastUpdateTime / 1000)
+        .minus(this.lastUpdateTime)
         .times(this.rewardRate)
         .times(1e18)
         .div(this.totalSupply)
